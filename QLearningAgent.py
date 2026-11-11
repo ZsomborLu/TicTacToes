@@ -72,6 +72,15 @@ class QLearningAgent:
         valid_actions = self.get_valid_actions(board)
         if not valid_actions:
             raise ValueError("Für ein volles Brett gibt es keine legale Aktion.")
+        if random.random() < self.epsilon:
+                return random.choice(valid_actions)
+        else:
+            state = self.get_state(board)
+            q_values = self.get_q_values(state)
+            max_q_value = max(q_values[action] for action in valid_actions)
+            best_actions = [action for action in valid_actions if q_values[action] == max_q_value]
+            return random.choice(best_actions)
+
 
         state = self.get_state(board)
         q_values = self.get_q_values(state)
