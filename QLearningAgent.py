@@ -81,14 +81,10 @@ class QLearningAgent:
             best_actions = [action for action in valid_actions if q_values[action] == max_q_value]
             return random.choice(best_actions)
 
-
-        state = self.get_state(board)
-        q_values = self.get_q_values(state)
-
         # TODO A1: Mit Wahrscheinlichkeit epsilon zufällig aus valid_actions wählen.
         # TODO A2: Sonst den höchsten Q-Wert NUR unter valid_actions bestimmen.
         # TODO A3: Bei Gleichstand zufällig zwischen den besten legalen Zügen wählen.
-        raise NotImplementedError("TODO A: choose_action vervollständigen")
+
 
     def update_q_table(self, state, action, reward, next_state=None, terminal=False):
         """TODO B: Genau Q(state, action) gemäss Q-Learning aktualisieren."""
@@ -97,7 +93,7 @@ class QLearningAgent:
 
         if terminal:
             # TODO B1: Für terminale Zustände ist target nur der unmittelbare Reward.
-            target = None
+            target = reward
         else:
             if next_state is None:
                 raise ValueError("Für ein nicht-terminales Update ist next_state nötig.")
@@ -106,14 +102,17 @@ class QLearningAgent:
                 raise ValueError("Ein terminaler Folgezustand braucht terminal=True.")
 
             next_q_values = self.get_q_values(next_state)
-            # TODO B2: best_next_value = höchster Wert nur über next_actions.
+
+             # TODO B2: best_next_value = höchster Wert nur über next_actions.
+            best_next_value = max(next_q_values[a] for a in next_actions)
+   
             # TODO B3: target = reward + gamma * best_next_value.
-            target = None
+            target = reward + self.gamma * best_next_value
 
         # TODO B4: Q <- old_value + alpha * (target - old_value)
         #           und Ergebnis an q_values[action] speichern.
-        raise NotImplementedError("TODO B: update_q_table vervollständigen")
-
+        q_values[action] = old_value + self.alpha * (target - old_value)
+        
     def train_agent(self, episodes=20_000, seed=None):
         """TODO C: Methode aus den drei Codebausteinen im Arbeitsheft übertragen."""
         raise NotImplementedError("TODO C: train_agent aus dem Arbeitsheft übertragen")
