@@ -112,7 +112,70 @@ class QLearningAgent:
         # TODO B4: Q <- old_value + alpha * (target - old_value)
         #           und Ergebnis an q_values[action] speichern.
         q_values[action] = old_value + self.alpha * (target - old_value)
-        
+
     def train_agent(self, episodes=20_000, seed=None):
         """TODO C: Methode aus den drei Codebausteinen im Arbeitsheft übertragen."""
-        raise NotImplementedError("TODO C: train_agent aus dem Arbeitsheft übertragen")
+         # Codeblock 1
+         # Trainiere gegen zufälliges X und gib ein Ergebnis pro Episode zurück.
+        if seed is not None:
+            self.rng.seed(seed)
+        history = []
+        for _ in range(episodes):
+            self.game.board = [[" " for _ in range(3)] for _ in range(3)]
+            board = self.game.board
+            result = None
+            # X beginnt jede Partie mit einem zufälligen legalen Zug.
+            x_action = self.rng.choice(self.get_valid_actions(board))
+            row, col = divmod(x_action, 3)
+            board[row][col] = "X"
+            while result is None:
+                # Zustand und Aktion des Agenten vor dem Zug sichern.
+                state = self.get_state(board)
+                action = self.choose_action(board)
+                row, col = divmod(action, 3)
+                board[row][col] = "O"
+
+                # Codeblock 2
+                if self.game.check_winner("O"):
+                    self.update_q_table(
+                        state, action, self.reward_win, terminal=True
+                    )
+                    result = "win"
+                elif self.game.is_board_full():
+                    self.update_q_table(
+                        state, action, self.reward_draw, terminal=True
+                    )
+                    result = "draw"
+                else:
+                    # Die Umgebung führt genau eine Zufallsantwort aus.
+                    x_action = self.rng.choice(self.get_valid_actions(board))
+                    row, col = divmod(x_action, 3)
+                    board[row][col] = "X"
+                    if self.game.check_winner("X"):
+                        self.update_q_table(
+                            state, action, self.reward_loss, terminal=True
+                        )
+                        result = "loss"
+                    elif self.game.is_board_full():
+                        self.update_q_table(
+                            state, action, self.reward_draw, terminal=True
+                        )
+                        result = "draw"
+                    else:
+                        # s' ist das Brett nach Xs realer Antwort.
+                        next_state = self.get_state(board)
+                        self.update_q_table(
+                            state,
+                            action,
+                            reward=0,
+                            next_state=next_state,
+                            terminal=False,
+                        )
+        # Codeblock 3
+            history.append(result)
+            self.epsilon = max(
+                self.epsilon_min,
+                self.epsilon * self.epsilon_decay,
+            )
+        return history
+
